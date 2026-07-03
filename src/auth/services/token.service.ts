@@ -165,7 +165,7 @@ export class TokenService {
     rt: string,
     createAt?: Date,
     exp?: Date,
-  ) {
+  ): Promise<number | undefined> {
     // GET EXPIRES DATE AND SET DATE
     const expiresAt = new Date();
     expiresAt.setDate(expiresAt.getDate() + 7);

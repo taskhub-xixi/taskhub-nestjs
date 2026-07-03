@@ -5,9 +5,8 @@ import {
   Injectable,
 } from "@nestjs/common";
 import { Reflector } from "@nestjs/core";
-import { AuthGuard } from "@nestjs/passport";
-import { AuthService } from "../../auth/auth.service";
 import { JwtService } from "@nestjs/jwt";
+import { AuthService } from "../../auth/auth.service";
 import { JwtPayload } from "../../auth/dto/payload-interface";
 
 @Injectable()

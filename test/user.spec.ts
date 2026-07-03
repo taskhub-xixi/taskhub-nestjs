@@ -1,15 +1,13 @@
 import { INestApplication } from "@nestjs/common";
-import { TestService } from "./test.service";
-import { Logger } from "winston";
-import request from "supertest";
-import { TestModule } from "./test.module";
-import { TestingModule, Test } from "@nestjs/testing";
-import { AppModule } from "../src/app.module";
+import { Test, TestingModule } from "@nestjs/testing";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
-import { password } from "bun";
+import request from "supertest";
+import { Logger } from "winston";
+import { AppModule } from "../src/app.module";
+import { TestModule } from "./test.module";
+import { TestService } from "./test.service";
 
 describe("AuthController", () => {
-  // dep inject
   let app: INestApplication;
   let logger: Logger;
   let testService: TestService;

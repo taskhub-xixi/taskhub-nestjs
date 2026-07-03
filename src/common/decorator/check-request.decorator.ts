@@ -7,12 +7,3 @@ export const CheckRequest = createParamDecorator(
     return queryParam;
   },
 );
-
-//
-//     // Query params
-//     const query = req.query;           // Semua query params
-//     const specific = req.query.name;   // Query param spesifik
-//
-//     // Route params (:id)
-//     const params = req.params;
-// …

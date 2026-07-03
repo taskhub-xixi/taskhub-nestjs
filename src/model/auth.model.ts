@@ -116,11 +116,9 @@ export class RegisterResponse {
 }
 
 export class LoginResponse {
-  data!: {
-    refresh_token: string;
-    access_token: string;
-    expiresIn: Date;
-  };
+  refresh_token!: string;
+  access_token!: string;
+  expiresIn!: Date;
 }
 
 export class UpdateResponse {

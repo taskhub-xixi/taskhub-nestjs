@@ -120,84 +120,46 @@ export class GetProductsRequest {
   @IsString()
   @IsOptional()
   search?: string;
+
+  @IsString()
+  @IsOptional()
+  slug?: string;
 }
 
-export class GetProductsResponseSuccess {
-  products!: {
+export class ProductResponse {
+  id!: string;
+  name!: string;
+  price!: Decimal;
+  slug!: string;
+  sku!: string;
+  description!: string;
+  originalPrice!: Decimal | null;
+
+  category!: {
     id: string;
     name: string;
-    price: Decimal;
     slug: string;
-    sku: string;
-    description: string;
-    originalPrice: Decimal | null;
-    category: {
+    parent?: {
       id: string;
       name: string;
       slug: string;
-      parent?: {
-        id: string;
-        name: string;
-        slug: string;
-      };
     };
-    brand: {
-      id: string;
-      name: string;
-    };
-    stock: number;
-    lowStockThreshold: number | null;
-    ratingAverage: Decimal | null;
-    ratingCount: number | null;
-    reviewCount: number | null;
-    isActive: boolean;
-    metadata: {} | null;
-    createdAt: Date | null;
-    shortDescription: string | null;
   };
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
-}
 
-export class GetProductsResponseSuccessAll {
-  products!: {
+  brand!: {
     id: string;
     name: string;
-    price: Decimal;
-    slug: string;
-    sku: string;
-    description: string;
-    originalPrice: Decimal | null;
-    category: {
-      id: string;
-      name: string;
-      slug: string;
-      parent?: {
-        id: string;
-        name: string;
-        slug: string;
-      };
-    };
-    brand: {
-      id: string;
-      name: string;
-    };
-    stock: number;
-    lowStockThreshold: number | null;
-    ratingAverage: Decimal | null;
-    ratingCount: number | null;
-    reviewCount: number | null;
-    isActive: boolean;
-    metadata: {} | null;
-    createdAt: Date | null;
-    shortDescription: string | null;
-  }[];
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
+  };
+
+  stock!: number;
+  lowStockThreshold!: number | null;
+  ratingAverage!: Decimal | null;
+  ratingCount!: number | null;
+  reviewCount!: number | null;
+  isActive!: boolean;
+  metadata!: Record<string, unknown> | null;
+  createdAt!: Date | null;
+  shortDescription!: string | null;
 }
 
 export class GetProductResponseSuccessQuery {
@@ -330,35 +292,6 @@ export class UploadPhotoResponseSuccess {
   };
 }
 
-export class GetProductByCategoryResponse {
-  products!: {
-    id: string;
-    name: string;
-    price: Decimal;
-    slug: string;
-    sku: string;
-    description: string;
-    originalPrice: Decimal | null;
-    categoryId: string;
-    brandId: string | null;
-    stock: number;
-    lowStockThreshold: number | null;
-    ratingAverage: Decimal | null;
-    ratingCount: number | null;
-    reviewCount: number | null;
-    isActive: boolean;
-    metadata: {} | null;
-    createdAt: Date | null;
-    updatedAt: Date | null;
-    shortDescription: string | null;
-    deletedAt?: Date | null;
-  }[];
-  total?: number;
-  page?: number;
-  limit?: number;
-  totalPages?: number;
-}
-
 export class TotalResultCategories {
   perCategory!: number;
   name!: string;
@@ -379,4 +312,8 @@ export class SlugRequest {
 export class DeleteProductResponse {
   @IsBoolean()
   deleted!: boolean;
+}
+
+export class TotalSlugQuery {
+  jumlah!: number;
 }

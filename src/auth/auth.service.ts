@@ -111,11 +111,9 @@ export class AuthService implements IAuthService {
     );
 
     return {
-      data: {
-        refresh_token: token.refresh_token,
-        access_token: token.access_token,
-        expiresIn: token.exp,
-      },
+      refresh_token: token.refresh_token,
+      access_token: token.access_token,
+      expiresIn: token.exp,
     };
   }
 

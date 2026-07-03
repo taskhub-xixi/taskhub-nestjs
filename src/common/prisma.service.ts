@@ -11,6 +11,26 @@ export class PrismaService extends PrismaClient {
       database: process.env.DATABASE_NAME,
       connectionLimit: 5,
     });
-    super({ adapter });
+    super({
+      adapter,
+      log: [
+        {
+          emit: "event",
+          level: "query",
+        },
+        {
+          emit: "event",
+          level: "error",
+        },
+        {
+          emit: "event",
+          level: "info",
+        },
+        {
+          emit: "event",
+          level: "warn",
+        },
+      ],
+    });
   }
 }

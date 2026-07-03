@@ -75,10 +75,10 @@ export class UserController implements IUserRepository {
     return {
       data: result,
       paging: {
-        current_page: result.pagination.page,
-        total_page: result.pagination.total_pages,
-        page_size: result.pagination.limit,
-        total_item: result.pagination.total_users,
+        currentPage: result.pagination.page,
+        totalPage: result.pagination.total_pages,
+        pageSize: result.pagination.limit,
+        totalItem: result.pagination.total_users,
       },
       statusCode: HttpStatus.OK,
     };

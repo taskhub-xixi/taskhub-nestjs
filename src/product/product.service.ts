@@ -1,5 +1,5 @@
 import { HttpException, Inject, Injectable } from "@nestjs/common";
-import { Brand, Category, Product } from "@prisma/client";
+import { Product } from "@prisma/client";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { Logger } from "winston";
 import { PrismaService } from "../common/prisma.service";
@@ -7,15 +7,15 @@ import {
   CreateProductRequest,
   CreateProductResponseSuccess,
   DeleteProductResponse,
-  GetProductByCategoryResponse,
   GetProductResponseSuccessQuery,
   GetProductsRequest,
-  GetProductsResponseSuccess,
-  GetProductsResponseSuccessAll,
+  ProductResponse,
   TotalResultCategories,
+  TotalSlugQuery,
   UpdateProductRequest,
   UpdateProductResponse,
 } from "../model/product.model";
+import { WebResponse } from "../model/web.mode";
 
 @Injectable()
 export class ProductService {
@@ -101,146 +101,106 @@ export class ProductService {
 
   async getProductAll(
     req: GetProductsRequest,
-  ): Promise<GetProductsResponseSuccessAll> {
+  ): Promise<WebResponse<ProductResponse[]>> {
     this.logger.info(`PRODUCT_SERVICE.getProductAll: ${JSON.stringify(req)}`);
 
-    // const where = this.queryQondition(reqresult);
-    const limit = Number(req.limit);
-    const total = await this.prismaService.product.count();
-    let totalPages: number;
+    const page = Math.max(1, Number(req.page) || 1);
+    const limit = Math.max(1, Number(req.limit) || 20);
 
-    if (limit === 20) {
-      totalPages = Math.ceil(total / 20);
-    } else {
-      totalPages = Math.ceil(total / limit);
-    }
-
-    const page = Number(req.page);
-    const countPage = limit * page - 20;
-
-    // const dataProduct = await this.prismaService.product.findMany({
-    //   where: {
-    //     categoryId: req.category !== undefined ? req.category : undefined,
-    //   },
-    //   take: limit,
-    //   skip: page === 1 ? 0 : countPage,
-    // });
-
-    // if (page === 1) {
-    //   page = 0;
-    // }
+    const totalItems = await this.prismaService.product.count();
+    const totalPages = Math.ceil(totalItems / limit);
+    const offset = (page - 1) * limit;
 
     const dataProduct = await this.prismaService.$queryRaw<
       GetProductResponseSuccessQuery[]
     >`
-      select p.*, 
-      c.id as category_id, c.name as category_name, c.slug as category_slug, 
-      b.id as brand_id, b.name as brand_name 
-      from products as p 
-      left join brands as b on p.brand_id = b.id
-      left join categories as c on c.id = p.category_id
+      select
+          p.id,
+          p.name,
+          p.price,
+          p.original_price,
+          p.slug,
+          p.sku,
+          p.description,
+          p.short_description,
+          p.stock,
+          p.low_stock_threshold,
+          p.rating_average,
+          p.review_count,
+          p.rating_count,
+          p.is_active,
+          p.metadata,
+          p.created_at,
+          b.id as brand_id,
+          b.name as brand_name,
+          c.id as category_id,
+          c.name as category_name,
+          c.slug as category_slug
+      from
+          products as p
+          join brands as b on p.brand_id = b.id
+          join categories as c on c.id = p.category_id
       limit ${limit}
-      offset ${page === 1 ? 0 : countPage};`;
+      offset ${offset};`;
 
-    const dp = dataProduct.map((i) => ({
-      id: i.id,
-      name: i.name,
-      price: i.price,
-      originalPrice: i.original_price,
-      slug: i.slug,
-      sku: i.slug,
-      description: i.description,
-      shortDescription: i.short_description,
-      category: {
-        id: i.category_id,
-        name: i.category_name,
-        slug: i.category_slug,
-      },
-      brand: {
-        id: i.brand_id,
-        name: i.brand_name,
-      },
-      stock: i.stock,
-      lowStockThreshold: i.low_stock_threshold,
-      ratingAverage: i.rating_average,
-      ratingCount: i.rating_count,
-      reviewCount: i.review_count,
-      isActive: i.isActive,
-      metadata: i.metadata,
-      createdAt: i.created_at,
-    }));
-
+    const data = dataProduct.map((product) => {
+      return this.toProductResponse(product);
+    });
     return {
-      products: dp,
-      total: total,
-      limit: limit,
-      page: page,
-      totalPages: totalPages,
+      statusCode: 200,
+      message: "Success",
+      data: data,
+      paging: {
+        currentPage: page,
+        pageSize: limit,
+        totalItem: totalItems,
+        totalPage: totalPages,
+      },
     };
   }
 
-  async getProductById(id: string): Promise<GetProductsResponseSuccess> {
+  async getProductById(id: string): Promise<ProductResponse> {
     this.logger.info(`PRODUCT_SERVICE.getProductById: ${id}`);
 
-    const dataProduct = await this.prismaService
-      .$queryRaw<GetProductResponseSuccessQuery>`
-      select p.id, p.price, p.original_price, p.slug, p.sku, p.description, 
-      p.short_description, p.stock, p.low_stock_threshold, p.rating_average, 
-      p.review_count, p.rating_count, p.is_active, p.metadata, p.created_at
-      b.*, c.* from product as p 
-      left join brands as b on p.brand_id = b.id
-      left join categories as c on c.id = p.category_id where p.id = ${id}`;
-
-    const product = await this.prismaService.product.findUnique({
-      where: { id: id },
-    });
-
-    const total = await this.prismaService.product.count({ where: { id: id } });
-
-    if (!product) {
-      throw new HttpException("Data Not Found", 404);
-    }
-
-    const dataCategory = await this.prismaService
-      .$queryRaw<Category>`select * from categories where id = ${product.categoryId}`;
-
-    const dataBrand = await this.prismaService
-      .$queryRaw<Brand>`select * from brand_id where id = ${product.brandId}`;
+    const [dataProduct] = await this.prismaService.$queryRaw<
+      GetProductResponseSuccessQuery[]
+    >`
+      select
+          p.id,
+          p.name,
+          p.price,
+          p.original_price,
+          p.slug,
+          p.sku,
+          p.description,
+          p.short_description,
+          p.stock,
+          p.low_stock_threshold,
+          p.rating_average,
+          p.review_count,
+          p.rating_count,
+          p.is_active,
+          p.metadata,
+          p.created_at,
+          b.id as brand_id,
+          b.name as brand_name,
+          c.id as category_id,
+          c.name as category_name,
+          c.slug as category_slug
+      from
+          products as p
+          join brands as b on p.brand_id = b.id
+          join categories as c on c.id = p.category_id
+      where
+          p.id = ${id};`;
 
     if (!dataProduct) {
       throw new HttpException("Data Not Found", 404);
     }
 
-    return {
-      products: {
-        id: dataProduct.id,
-        name: dataProduct.name,
-        price: dataProduct.price,
-        originalPrice: dataProduct.original_price,
-        slug: dataProduct.slug,
-        sku: dataProduct.slug,
-        description: dataProduct.description,
-        shortDescription: dataProduct.short_description,
-        category: {
-          id: dataCategory.id,
-          name: dataCategory.name,
-          slug: dataCategory.slug,
-        },
-        brand: {
-          id: dataBrand.id,
-          name: dataBrand.name,
-        },
-        stock: dataProduct.stock,
-        lowStockThreshold: dataProduct.low_stock_threshold,
-        ratingAverage: dataProduct.rating_average,
-        ratingCount: dataProduct.rating_count,
-        reviewCount: dataProduct.review_count,
-        isActive: dataProduct.isActive,
-        metadata: dataProduct.metadata,
-        createdAt: dataProduct.created_at,
-      },
-      total: total,
-    };
+    const data = this.toProductResponse(dataProduct);
+
+    return data;
   }
 
   async updateProductById(
@@ -291,44 +251,16 @@ export class ProductService {
     };
   }
 
-  // async getProductBySlug() {
-  //     const product = await this.prismaService.product
-  // }
-
   async getProductByCategory(
     req: GetProductsRequest,
-  ): Promise<GetProductByCategoryResponse> {
+  ): Promise<WebResponse<ProductResponse[]>> {
     this.logger.info(
       `PRODUCT_SERVICE.getProductByCategory: ${JSON.stringify(req)}`,
     );
 
     const category = req.category;
-    const limit = Number(req.limit);
-
-    let skip: number;
-    let page = Number(req.page);
-
-    if (page === 1) {
-      page = 0;
-      skip = 0;
-    } else {
-      skip = limit * page - 20;
-    }
-
-    if (!category) {
-      throw new HttpException("Product not found", 404);
-    }
-
-    const rawCategory = await this.prismaService.$queryRaw<
-      Product[]
-    >`SELECT p.*, c.name as category_name
-      FROM products AS p
-      JOIN categories as c ON p.category_id = c.id
-      WHERE
-      c.name LIKE ${category} 
-      LIMIT ${limit}
-      OFFSET
-      ${skip}`;
+    const page = Math.max(1, Number(req.page) || 1);
+    const limit = Math.max(1, Number(req.limit) || 20);
 
     const total = await this.prismaService.$queryRaw<
       TotalResultCategories[]
@@ -341,25 +273,90 @@ export class ProductService {
 
     const totalCategory = Number(total[0].perCategory);
 
+    const totalPages = Math.ceil(totalCategory / limit);
+    const offset = (page - 1) * limit;
+
+    if (!category) {
+      throw new HttpException("Product not found", 404);
+    }
+
+    const rawCategory = await this.prismaService.$queryRaw<
+      GetProductResponseSuccessQuery[]
+    >`
+      select
+          p.id,
+          p.name,
+          p.price,
+          p.original_price,
+          p.slug,
+          p.sku,
+          p.description,
+          p.short_description,
+          p.stock,
+          p.low_stock_threshold,
+          p.rating_average,
+          p.review_count,
+          p.rating_count,
+          p.is_active,
+          p.metadata,
+          p.created_at,
+          b.id as brand_id,
+          b.name as brand_name,
+          c.id as category_id,
+          c.name as category_name,
+          c.slug as category_slug
+      from
+          products as p
+          join brands as b on p.brand_id = b.id
+          join categories as c on c.id = p.category_id
+      WHERE
+      c.name LIKE ${category} 
+      LIMIT ${limit}
+      OFFSET ${offset}`;
+
+    const data = rawCategory.map((product) => {
+      return this.toProductResponse(product);
+    });
+
     return {
-      products: rawCategory,
-      total: totalCategory,
+      statusCode: 200,
+      message: "Success",
+      data: data,
+      paging: {
+        currentPage: page,
+        pageSize: limit,
+        totalItem: totalCategory,
+        totalPage: totalPages,
+      },
     };
   }
 
-  async search(name: string): Promise<GetProductsResponseSuccess> {
-    this.logger.info(`PRODUCT_SERVICE:search ${name}`);
+  async search(
+    req: GetProductsRequest,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    this.logger.info(`PRODUCT_SERVICE:search ${req.search}`);
 
-    if (!name || typeof name !== "string") {
+    if (!req.search || typeof req.search !== "string") {
       throw new HttpException("Search term is required", 400);
     }
 
-    const sanitized = name.replace("/%/g", "\\%").replace("/_/g", "\\_");
+    const sanitized = req.search.replace("/%/g", "\\%").replace("/_/g", "\\_");
 
     const flex = sanitized.concat("%");
 
-    const dataProduct = await this.prismaService
-      .$queryRaw<GetProductResponseSuccessQuery>`
+    const page = Math.max(1, Number(req.page) || 1);
+    const limit = Math.max(1, Number(req.limit) || 20);
+
+    const totalNames = await this.prismaService.product.count({
+      where: { name: { startsWith: flex } },
+    });
+
+    const totalPages = Math.ceil(totalNames / limit);
+    // const offset = (page - 1) * limit;
+
+    const dataProduct = await this.prismaService.$queryRaw<
+      GetProductResponseSuccessQuery[]
+    >`
       SELECT * FROM products as p 
       left join categories as c on c.id = p.category_id 
       left join brands as b on b.id = p.brand_id
@@ -369,79 +366,88 @@ export class ProductService {
       throw new HttpException("Product not found", 404);
     }
 
-    const counting = await this.prismaService.product.count({
-      where: { name: { startsWith: flex } },
+    const data = dataProduct.map((product) => {
+      return this.toProductResponse(product);
     });
 
     return {
-      products: {
-        id: dataProduct.id,
-        name: dataProduct.name,
-        price: dataProduct.price,
-        originalPrice: dataProduct.original_price,
-        slug: dataProduct.slug,
-        sku: dataProduct.slug,
-        description: dataProduct.description,
-        shortDescription: dataProduct.short_description,
-        category: {
-          id: dataProduct.category_id,
-          name: dataProduct.category_name,
-          slug: dataProduct.category_slug,
-        },
-        brand: {
-          id: dataProduct.brand_id,
-          name: dataProduct.brand_name,
-        },
-        stock: dataProduct.stock,
-        lowStockThreshold: dataProduct.low_stock_threshold,
-        ratingAverage: dataProduct.rating_average,
-        ratingCount: dataProduct.rating_count,
-        reviewCount: dataProduct.review_count,
-        isActive: dataProduct.isActive,
-        metadata: dataProduct.metadata,
-        createdAt: dataProduct.created_at,
+      statusCode: 200,
+      message: "Success",
+      data: data,
+      paging: {
+        currentPage: page,
+        pageSize: limit,
+        totalItem: totalNames,
+        totalPage: totalPages,
       },
-      total: counting,
     };
   }
 
-  async searchWithSlug(slug: string): Promise<GetProductsResponseSuccess> {
-    const dataProduct = await this.prismaService
-      .$queryRaw<GetProductResponseSuccessQuery>`
-      select * from
-      products as p
-      left join categories as c on c.id = p.category_id
-      left join brands as b on b.id = p.brand_id
+  async searchWithSlug(
+    req: GetProductsRequest,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    const slug = `%${req.slug}%`;
+
+    const page = Math.max(1, Number(req.page) || 1);
+    const limit = Math.max(1, Number(req.limit) || 20);
+
+    const total = await this.prismaService.$queryRaw<TotalSlugQuery[]>`
+      select count(*) as jumlah
+      from products as p
       where
-      p.slug like ${slug};`;
+          p.slug like ${slug}`;
+
+    const totalSlug = Number(total[0].jumlah);
+    console.log(totalSlug);
+
+    const totalPages = Math.ceil(totalSlug / limit);
+    const offset = (page - 1) * limit;
+
+    const dataProduct = await this.prismaService.$queryRaw<
+      GetProductResponseSuccessQuery[]
+    >`
+      SELECT
+        p.id,
+        p.name,
+        p.price,
+        p.original_price AS "originalPrice",
+        p.slug,
+        p.sku,
+        p.description,
+        p.short_description AS "shortDescription",
+        p.stock,
+        p.low_stock_threshold AS "lowStockThreshold",
+        p.rating_average AS "ratingAverage",
+        p.rating_count AS "ratingCount",
+        p.review_count AS "reviewCount",
+        p.is_active AS "isActive",
+        p.metadata,
+        p.created_at AS "createdAt",
+        c.id AS "categoryId",
+        c.name AS "categoryName",
+        c.slug AS "categorySlug",
+        b.id AS "brandId",
+        b.name AS "brandName"
+      FROM products p
+        LEFT JOIN categories c ON c.id = p.category_id
+        LEFT JOIN brands b ON b.id = p.brand_id
+      WHERE p.slug LIKE ${slug}
+      LIMIT ${limit}
+      OFFSET ${offset};`;
+
+    const data = dataProduct.map((product) => {
+      return this.toProductResponse(product);
+    });
 
     return {
-      products: {
-        id: dataProduct.id,
-        name: dataProduct.name,
-        price: dataProduct.price,
-        originalPrice: dataProduct.original_price,
-        slug: dataProduct.slug,
-        sku: dataProduct.slug,
-        description: dataProduct.description,
-        shortDescription: dataProduct.short_description,
-        category: {
-          id: dataProduct.category_id,
-          name: dataProduct.category_name,
-          slug: dataProduct.category_slug,
-        },
-        brand: {
-          id: dataProduct.brand_id,
-          name: dataProduct.brand_name,
-        },
-        stock: dataProduct.stock,
-        lowStockThreshold: dataProduct.low_stock_threshold,
-        ratingAverage: dataProduct.rating_average,
-        ratingCount: dataProduct.rating_count,
-        reviewCount: dataProduct.review_count,
-        isActive: dataProduct.isActive,
-        metadata: dataProduct.metadata,
-        createdAt: dataProduct.created_at,
+      statusCode: 200,
+      message: "Success",
+      data: data,
+      paging: {
+        currentPage: page,
+        pageSize: limit,
+        totalItem: totalSlug,
+        totalPage: totalPages,
       },
     };
   }
@@ -456,5 +462,35 @@ export class ProductService {
         websiteUrl: `www.${brand.toLowerCase()}.com`,
       },
     });
+  }
+
+  private toProductResponse(product: GetProductResponseSuccessQuery) {
+    return {
+      id: product.id,
+      name: product.name,
+      price: product.price,
+      originalPrice: product.original_price,
+      slug: product.slug,
+      sku: product.sku,
+      description: product.description,
+      shortDescription: product.short_description,
+      category: {
+        id: product.category_id,
+        name: product.category_name,
+        slug: product.category_slug,
+      },
+      brand: {
+        id: product.brand_id,
+        name: product.brand_name,
+      },
+      stock: product.stock,
+      lowStockThreshold: product.low_stock_threshold,
+      ratingAverage: product.rating_average,
+      ratingCount: product.rating_count,
+      reviewCount: product.review_count,
+      isActive: product.isActive,
+      metadata: product.metadata,
+      createdAt: product.created_at,
+    };
   }
 }

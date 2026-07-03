@@ -55,7 +55,11 @@ export class AuthController {
     const result = await this.authService.login(loginDTO, res);
 
     return {
-      data: result,
+      data: {
+        access_token: result.access_token,
+        expiresIn: result.expiresIn,
+        refresh_token: result.refresh_token,
+      },
       statusCode: HttpStatus.OK,
     };
   }

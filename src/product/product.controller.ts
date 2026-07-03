@@ -20,11 +20,8 @@ import {
   CreateProductRequest,
   CreateProductResponseSuccess,
   DeleteProductResponse,
-  GetProductByCategoryResponse,
   GetProductsRequest,
-  GetProductsResponseSuccess,
-  GetProductsResponseSuccessAll,
-  SearchRequest,
+  ProductResponse,
   SlugRequest,
   UpdateProductRequest,
   UpdateProductResponse,
@@ -62,12 +59,9 @@ export class ProductController {
   @Get("all")
   async getProductAll(
     @Query() req: GetProductsRequest,
-  ): Promise<WebResponse<GetProductsResponseSuccessAll>> {
+  ): Promise<WebResponse<ProductResponse[]>> {
     const result = await this.productService.getProductAll(req);
-    return {
-      data: result,
-      statusCode: HttpStatus.OK,
-    };
+    return result;
   }
 
   @Admin()
@@ -79,12 +73,9 @@ export class ProductController {
   @Get()
   async getProductByCategory(
     @Query() req: GetProductsRequest,
-  ): Promise<WebResponse<GetProductByCategoryResponse>> {
+  ): Promise<WebResponse<ProductResponse[]>> {
     const result = await this.productService.getProductByCategory(req);
-    return {
-      data: result,
-      statusCode: HttpStatus.OK,
-    };
+    return result;
   }
 
   @Admin()
@@ -93,29 +84,22 @@ export class ProductController {
   @UseGuards(PublicGuard)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get("/:name")
+  @Get("/name")
   async searchProductName(
-    @Query() req: SearchRequest,
-  ): Promise<WebResponse<GetProductsResponseSuccess>> {
-    console.log(typeof req);
-    const result = await this.productService.search(req.name);
-    return {
-      data: result,
-      statusCode: HttpStatus.OK,
-    };
+    @Query() req: GetProductsRequest,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    const result = await this.productService.search(req);
+    return result;
   }
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get("/:slug")
+  @Get("/slug")
   async searchWithSlug(
-    @Query() req: SlugRequest,
-  ): Promise<WebResponse<GetProductsResponseSuccess>> {
-    const result = await this.productService.searchWithSlug(req.slug);
-    return {
-      data: result,
-      statusCode: HttpStatus.OK,
-    };
+    @Query() req: GetProductsRequest,
+  ): Promise<WebResponse<ProductResponse[]>> {
+    const result = await this.productService.searchWithSlug(req);
+    return result;
   }
   //
   // @Admin()
@@ -153,7 +137,7 @@ export class ProductController {
   @Get("/:id")
   async getProductById(
     @Param("id") id: string,
-  ): Promise<WebResponse<GetProductsResponseSuccess>> {
+  ): Promise<WebResponse<ProductResponse>> {
     const result = await this.productService.getProductById(id);
     return {
       data: result,

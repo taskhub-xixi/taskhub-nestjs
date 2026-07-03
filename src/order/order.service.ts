@@ -10,8 +10,8 @@ import {
   GetOrderRequestService,
   GetOrderResponse,
   OrderQueryResponse,
-  OrderResponseQuery,
   OrderResponse,
+  OrderResponseQuery,
   PaymentsResponseFromGetOrderResponse,
 } from "./order.model";
 

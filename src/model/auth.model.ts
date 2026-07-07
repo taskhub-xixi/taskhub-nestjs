@@ -17,7 +17,7 @@ export class LoginDTO {
   email!: string;
 
   @IsNotEmpty()
-  @MinLength(8)
+  @MinLength(12)
   @MaxLength(100)
   password!: string;
 }
@@ -30,7 +30,7 @@ export class RegisterDTO {
 
   @IsNotEmpty()
   @IsString()
-  @MinLength(8)
+  @MinLength(12)
   @MaxLength(100)
   password!: string;
 
@@ -48,24 +48,24 @@ export class RegisterDTO {
 export class UpdateDTO {
   @IsEmail()
   @IsNotEmpty()
-  @Min(8)
-  @Max(100)
+  @MinLength(8)
+  @MaxLength(100)
   email?: string;
 
   @IsString()
-  @Min(8)
-  @Max(100)
+  @MinLength(12)
+  @MaxLength(100)
   password?: string;
 
   @IsString()
-  @Min(8)
-  @Max(100)
+  @MinLength(12)
+  @MaxLength(100)
   passwordChanged?: string;
 
   @IsString()
   @IsNotEmpty()
-  @Min(3)
-  @Max(100)
+  @MinLength(3)
+  @MaxLength(100)
   usernameChanged?: string;
 }
 
@@ -86,7 +86,7 @@ export class LogoutDTO {
 
 export class CookiePayload {
   @IsString()
-  @IsEmpty()
+  @IsNotEmpty()
   refreshtoken!: string;
 
   @IsString()
@@ -141,101 +141,3 @@ export class RefreshTokenResponse {
 export class VerifyResponseToken {
   id!: number;
 }
-
-// REGISTER DTO --> logic code
-// // validate
-//     if (!registerDTO.username || registerDTO.username.trim() === "") {
-//       throw new HttpException("username cannot be empty", 401);
-//     }
-//
-//     if (!registerDTO.email || registerDTO.email.trim() === "") {
-//       throw new HttpException("email cannot be empty", 401);
-//     }
-//
-//     if (!registerDTO.password || registerDTO.password.trim() === "") {
-//       throw new HttpException("password cannot be empty", 401);
-//     }
-//
-//     if (registerDTO.password.length < 8) {
-//       throw new HttpException("password must be atleast 8 charachter", 401);
-//     }
-//
-//     if (registerDTO.username.length < 2) {
-//       throw new HttpException("username must be atleast 2 charachter", 401);
-//     }
-//
-//     if (registerDTO.email.length < 8) {
-//       throw new HttpException("email must be atleast 8 charachter", 401);
-//     }
-
-// LOGN DTO -> logic code
-// // validate
-// if (!loginDTO.email || loginDTO.email.trim() === "") {
-//   throw new BadRequestException("email cannot be empty");
-// }
-// if (!loginDTO.password || loginDTO.password.trim() === "") {
-//   throw new BadRequestException("password cannot be empty");
-// }
-// if (loginDTO.password.length < 8) {
-//   throw new BadRequestException("password minimum is 8 charachter");
-// }
-// if (loginDTO.email.length < 8) {
-//   throw new BadRequestException("email minimum is 8 charachter");
-// }
-
-// RESET DTO -> logic code
-
-// if (!resetDTO.email || resetDTO.email.trim() === "") {
-//         throw new BadRequestException("email cannot be empty");
-//       }
-//       if (!resetDTO.password || resetDTO.password.trim() === "") {
-//         throw new BadRequestException("password cannot be empty");
-//       }
-//       if (!resetDTO.passwordChanged || resetDTO.passwordChanged.trim() === "") {
-//         throw new BadRequestException("repeat password cannot be empty");
-//       }
-//       if (resetDTO.email.length < 8) {
-//         throw new BadRequestException("email must be atleast 8 charachter");
-//       }
-//       if (resetDTO.password.length < 8) {
-//         throw new BadRequestException("password must be atleast 8 charachter");
-//       }
-//       if (resetDTO.passwordChanged.length < 8) {
-//         throw new BadRequestException(
-//           "repeat password must be atleast 8 charachter",
-//         );
-//       }
-//       if (resetDTO.password !== resetDTO.passwordChanged) {
-//         throw new BadRequestException(
-//           "password and repeat password is not the same",
-//         );
-//       }
-
-// DELETE DTO -> logic code
-
-//
-// if (!email || email.trim() === "") {
-//   throw new BadRequestException("email cannot be empty");
-// }
-// if (!password || password.trim() === "") {
-//   throw new BadRequestException("password cannot be empty");
-// }
-// if (password.length < 8) {
-//   throw new BadRequestException("password must be atleast 8 charachter");
-// }
-// if (email.length < 8) {
-//   throw new BadRequestException("email must be atleast 8 charachter");
-// }
-// if (!confPassword || confPassword.trim() === "") {
-//   throw new BadRequestException("cofirmation password cannot be empty");
-// }
-// if (confPassword.length < 8) {
-//   throw new BadRequestException(
-//     "confirmation password must be atleast 8 charachter",
-//   );
-// }
-// if (confPassword !== password) {
-//   throw new BadRequestException(
-//     "confirmation password and password is not same",
-//   );
-// }

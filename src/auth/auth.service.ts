@@ -21,7 +21,7 @@ import {
   RegisterResponse,
   UpdateDTO,
 } from "../model/auth.model";
-import { IAuthService } from "./interface/auth.service.interface";
+import { IAuthService } from "./interfaces/auth.service.interface";
 import { TokenService } from "./services/token.service";
 
 @Injectable()

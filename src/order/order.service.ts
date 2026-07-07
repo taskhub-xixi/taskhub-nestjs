@@ -2,7 +2,7 @@ import { HttpException, Inject, Injectable } from "@nestjs/common";
 import { WINSTON_MODULE_PROVIDER } from "nest-winston";
 import { randomInt } from "node:crypto";
 import { Logger } from "winston";
-import { JwtPayload } from "../auth/dto/payload-interface";
+import { JwtPayload } from "../auth/interfaces/payload-interface";
 import { PrismaService } from "../common/prisma.service";
 import {
   CreateOrderRequest,
@@ -21,7 +21,7 @@ export class OrderService {
     private readonly prismaService: PrismaService,
     @Inject(WINSTON_MODULE_PROVIDER)
     private readonly logger: Logger,
-  ) {}
+  ) { }
 
   async createOrder(
     req: CreateOrderRequest,

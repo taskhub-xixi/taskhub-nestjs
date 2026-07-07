@@ -8,7 +8,6 @@ import { JwtStrategy } from "../common/strategies/jwt.strategy";
 import { RtStrategy } from "../common/strategies/rt.strategy";
 import { AuthController } from "./auth.controller";
 import { AuthService } from "./auth.service";
-import { AuthRepositorySQL } from "./repository_query/auth.repository";
 import { TokenService } from "./services/token.service";
 
 @Module({
@@ -29,7 +28,6 @@ import { TokenService } from "./services/token.service";
     JwtStrategy,
     RtStrategy,
     AtStrategy,
-    AuthRepositorySQL,
     TokenService,
     JwtService,
   ],
@@ -39,7 +37,6 @@ import { TokenService } from "./services/token.service";
     JwtStrategy,
     RtStrategy,
     AtStrategy,
-    AuthRepositorySQL,
     TokenService,
     JwtService,
   ],

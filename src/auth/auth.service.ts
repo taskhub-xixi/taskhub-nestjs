@@ -206,6 +206,7 @@ export class AuthService implements IAuthService {
     const user = await this.prismaService.users.findUnique({
       where: { email },
     });
+    console.log(user);
     if (user && (await bcrypt.compare(pass, user.password_hash))) {
       const { password_hash, ...result } = user;
       return result;

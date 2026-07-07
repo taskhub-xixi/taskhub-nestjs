@@ -16,7 +16,7 @@ import {
   RefreshTokenResponse,
   RefreshTokenResponseQuery,
 } from "../../model/token.model";
-import { JwtPayload } from "../dto/payload-interface";
+import { JwtPayload } from "../interfaces/payload-interface";
 
 @Injectable()
 export class TokenService {
@@ -25,7 +25,7 @@ export class TokenService {
     private readonly jwtService: JwtService,
     private prismaService: PrismaService,
     private readonly configService: ConfigService,
-  ) {}
+  ) { }
 
   async UpdateToken(payload: JwtPayload, res: Response): Promise<JWTResponse> {
     this.logger.info(

@@ -3,7 +3,7 @@ import {
   ExecutionContext,
   HttpException,
 } from "@nestjs/common";
-import { JwtPayload } from "../../auth/dto/payload-interface";
+import { JwtPayload } from "../../auth/interfaces/payload-interface";
 
 export const GetCurrentUserId = createParamDecorator(
   (_: undefined, context: ExecutionContext): string | undefined => {

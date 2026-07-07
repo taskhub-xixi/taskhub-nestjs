@@ -7,7 +7,7 @@ import {
 import { Reflector } from "@nestjs/core";
 import { JwtService } from "@nestjs/jwt";
 import { AuthService } from "../../auth/auth.service";
-import { JwtPayload } from "../../auth/dto/payload-interface";
+import { JwtPayload } from "../../auth/interfaces/payload-interface";
 
 @Injectable()
 export class AdminGuard implements CanActivate {
@@ -15,7 +15,7 @@ export class AdminGuard implements CanActivate {
     private reflector: Reflector,
     private authService: AuthService,
     private readonly jwtService: JwtService,
-  ) {}
+  ) { }
 
   // JwtAuthGuard --> user: Payload --> adminGuard --> req.user --> checkRole
   async canActivate(context: ExecutionContext) {

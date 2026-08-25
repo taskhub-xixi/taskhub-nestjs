@@ -14,6 +14,7 @@ import { AdminGuard, JwtAuthGuard } from "../common/guards";
 import { PublicGuard } from "../common/guards/public.guards";
 import {
   GetAllUserResponse,
+  GetUserByEmail,
   GetUserById,
   GetUserResponse,
   ListQueryRequest,
@@ -100,4 +101,21 @@ export class UserController implements IUserRepository {
       statusCode: HttpStatus.OK,
     };
   }
+
+  // @Admin()
+  // @Public()
+  // @UseGuards(AdminGuard)
+  // @UseGuards(PublicGuard)
+  // @UseGuards(JwtAuthGuard)
+  // @Get("/:id")
+  // @HttpCode(HttpStatus.OK)
+  // async getUserByEmail(
+  //   @Req() request: GetUserByEmail,
+  // ): Promise<WebResponse<GetUserResponse>> {
+  //   const result = await this.userService.getUserByEmail(request.email);
+  //   return {
+  //     data: result,
+  //     statusCode: HttpStatus.OK,
+  //   };
+  // }
 }

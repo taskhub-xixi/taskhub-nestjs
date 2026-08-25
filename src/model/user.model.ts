@@ -56,6 +56,12 @@ export class GetUserById {
   id!: string;
 }
 
+export class GetUserByEmail {
+  @IsString()
+  @IsNotEmpty()
+  email!: string;
+}
+
 export class User {
   user!: {
     sub: string;

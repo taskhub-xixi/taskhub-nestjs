@@ -6,18 +6,18 @@ import {
   UpdateUserRequest,
   UpdateUserResponse,
   User,
-} from "../../model/user.model";
-import { WebResponse } from "../../model/web.mode";
+} from '../../model/user.model'
+import { WebResponse } from '../../model/web.model'
 
 export abstract class IUserRepository {
   abstract updateUser(
     request: UpdateUserRequest,
-  ): Promise<WebResponse<UpdateUserResponse>>;
+  ): Promise<WebResponse<UpdateUserResponse>>
   abstract getAllUser(
     Query: ListQueryRequest,
-  ): Promise<WebResponse<GetAllUserResponse>>;
+  ): Promise<WebResponse<GetAllUserResponse>>
   abstract getUserById(
     request: GetUserById,
-  ): Promise<WebResponse<GetUserResponse>>;
-  abstract me(req: User): Promise<WebResponse<GetUserResponse>>;
+  ): Promise<WebResponse<GetUserResponse>>
+  abstract me(req: User): Promise<WebResponse<GetUserResponse>>
 }

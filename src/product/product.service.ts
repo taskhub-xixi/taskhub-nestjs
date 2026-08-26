@@ -1,7 +1,7 @@
-import { HttpException, Inject, Injectable } from "@nestjs/common";
-import { WINSTON_MODULE_PROVIDER } from "nest-winston";
-import { Logger } from "winston";
-import { PrismaService } from "../common/prisma.service";
+import { HttpException, Inject, Injectable } from '@nestjs/common'
+import { WINSTON_MODULE_PROVIDER } from 'nest-winston'
+import { Logger } from 'winston'
+import { PrismaService } from '../common/prisma.service'
 import {
   CreateProductRequest,
   CreateProductResponseSuccess,
@@ -13,8 +13,8 @@ import {
   TotalSlugQuery,
   UpdateProductRequest,
   UpdateProductResponse,
-} from "../model/product.model";
-import { WebResponse } from "../model/web.mode";
+} from '../model/product.model'
+import { WebResponse } from '../model/web.model'
 
 @Injectable()
 export class ProductService {
@@ -26,29 +26,29 @@ export class ProductService {
   async createProduct(
     req: CreateProductRequest,
   ): Promise<CreateProductResponseSuccess> {
-    this.logger.info(`PRODUCT_SERVICE.createProduct: ${JSON.stringify(req)}`);
+    this.logger.info(`PRODUCT_SERVICE.createProduct: ${JSON.stringify(req)}`)
     const category_id = await this.prismaService.category.findFirst({
       where: { name: req.categoryId },
-    });
+    })
 
     if (!category_id) {
-      throw new HttpException("category not found", 403);
+      throw new HttpException('category not found', 403)
     }
 
     const checkBrandId = await this.prismaService.brand.findFirst({
       where: { name: req.brandId },
-    });
+    })
 
     if (!checkBrandId) {
-      await this.createBrand(req.brandId);
+      await this.createBrand(req.brandId)
     }
 
     const brand_id = await this.prismaService.brand.findFirst({
       where: { name: req.brandId },
-    });
+    })
 
     if (!brand_id) {
-      throw new HttpException("Brand not found", 403);
+      throw new HttpException('Brand not found', 403)
     }
 
     await this.prismaService.$executeRaw`
@@ -62,16 +62,16 @@ export class ProductService {
         ${category_id.id}, ${brand_id.id}, ${req.stock}, ${req.lowStockThreshold},
         ${req.ratingAverage}, ${req.ratingCount}, ${req.reviewCount},
         ${req.isActive}, ${req.metadata}
-    )`;
+    )`
 
     const product = await this.prismaService.product.findUnique({
       where: {
         slug: req.slug,
       },
-    });
+    })
 
     if (!product) {
-      throw new HttpException("Product not created", 403);
+      throw new HttpException('Product not created', 403)
     }
 
     return {
@@ -95,20 +95,20 @@ export class ProductService {
       updatedAt: product.updatedAt,
       shortDescription: product.shortDescription,
       deletedAt: product.deletedAt,
-    };
+    }
   }
 
   async getProductAll(
     req: GetProductsRequest,
   ): Promise<WebResponse<ProductResponse[]>> {
-    this.logger.info(`PRODUCT_SERVICE.getProductAll: ${JSON.stringify(req)}`);
+    this.logger.info(`PRODUCT_SERVICE.getProductAll: ${JSON.stringify(req)}`)
 
-    const page = Math.max(1, Number(req.page) || 1);
-    const limit = Math.max(1, Number(req.limit) || 20);
+    const page = Math.max(1, Number(req.page) || 1)
+    const limit = Math.max(1, Number(req.limit) || 20)
 
-    const totalItems = await this.prismaService.product.count();
-    const totalPages = Math.ceil(totalItems / limit);
-    const offset = (page - 1) * limit;
+    const totalItems = await this.prismaService.product.count()
+    const totalPages = Math.ceil(totalItems / limit)
+    const offset = (page - 1) * limit
 
     const dataProduct = await this.prismaService.$queryRaw<
       GetProductResponseSuccessQuery[]
@@ -140,14 +140,14 @@ export class ProductService {
           join brands as b on p.brand_id = b.id
           join categories as c on c.id = p.category_id
       limit ${limit}
-      offset ${offset};`;
+      offset ${offset};`
 
     const data = dataProduct.map((product) => {
-      return this.toProductResponse(product);
-    });
+      return this.toProductResponse(product)
+    })
     return {
       statusCode: 200,
-      message: "Success",
+      message: 'Success',
       data: data,
       paging: {
         currentPage: page,
@@ -155,11 +155,11 @@ export class ProductService {
         totalItem: totalItems,
         totalPage: totalPages,
       },
-    };
+    }
   }
 
   async getProductById(id: string): Promise<ProductResponse> {
-    this.logger.info(`PRODUCT_SERVICE.getProductById: ${id}`);
+    this.logger.info(`PRODUCT_SERVICE.getProductById: ${id}`)
 
     const [dataProduct] = await this.prismaService.$queryRaw<
       GetProductResponseSuccessQuery[]
@@ -191,15 +191,15 @@ export class ProductService {
           join brands as b on p.brand_id = b.id
           join categories as c on c.id = p.category_id
       where
-          p.id = ${id};`;
+          p.id = ${id};`
 
     if (!dataProduct) {
-      throw new HttpException("Data Not Found", 404);
+      throw new HttpException('Data Not Found', 404)
     }
 
-    const data = this.toProductResponse(dataProduct);
+    const data = this.toProductResponse(dataProduct)
 
-    return data;
+    return data
   }
 
   async updateProductById(
@@ -208,46 +208,46 @@ export class ProductService {
   ): Promise<UpdateProductResponse> {
     const isExist = await this.prismaService.product.findUnique({
       where: { id },
-    });
+    })
     if (!isExist) {
-      throw new HttpException("Product not found", 404);
+      throw new HttpException('Product not found', 404)
     }
 
     const product = await this.prismaService.product.update({
       where: { id: id },
       data: req,
-    });
+    })
 
     return {
       products: product,
-    };
+    }
   }
 
   async deleteProductById(id: string): Promise<DeleteProductResponse> {
     const isExist = await this.prismaService.product.findUnique({
       where: { id },
-    });
+    })
 
     if (!isExist) {
-      throw new HttpException("Product not found", 404);
+      throw new HttpException('Product not found', 404)
     }
 
-    await this.prismaService.$executeRaw`DELETE FROM products WHERE id = ${id}`;
+    await this.prismaService.$executeRaw`DELETE FROM products WHERE id = ${id}`
 
     const product = await this.prismaService
-      .$queryRaw`SELECT * FROM products WHERE id = ${id}`;
+      .$queryRaw`SELECT * FROM products WHERE id = ${id}`
 
-    let dtd: boolean = false;
+    let dtd: boolean = false
 
     if (product) {
-      throw new HttpException("Product not deleted", 404);
+      throw new HttpException('Product not deleted', 404)
     }
 
-    dtd = true;
+    dtd = true
 
     return {
       deleted: dtd,
-    };
+    }
   }
 
   async getProductByCategory(
@@ -255,11 +255,11 @@ export class ProductService {
   ): Promise<WebResponse<ProductResponse[]>> {
     this.logger.info(
       `PRODUCT_SERVICE.getProductByCategory: ${JSON.stringify(req)}`,
-    );
+    )
 
-    const category = req.category;
-    const page = Math.max(1, Number(req.page) || 1);
-    const limit = Math.max(1, Number(req.limit) || 20);
+    const category = req.category
+    const page = Math.max(1, Number(req.page) || 1)
+    const limit = Math.max(1, Number(req.limit) || 20)
 
     const total = await this.prismaService.$queryRaw<
       TotalResultCategories[]
@@ -268,15 +268,15 @@ export class ProductService {
       JOIN categories as c ON p.category_id = c.id
       WHERE c.name = ${category}
       GROUP BY
-      category_id, c.name;`;
+      category_id, c.name;`
 
-    const totalCategory = Number(total[0].perCategory);
+    const totalCategory = Number(total[0].perCategory)
 
-    const totalPages = Math.ceil(totalCategory / limit);
-    const offset = (page - 1) * limit;
+    const totalPages = Math.ceil(totalCategory / limit)
+    const offset = (page - 1) * limit
 
     if (!category) {
-      throw new HttpException("Product not found", 404);
+      throw new HttpException('Product not found', 404)
     }
 
     const rawCategory = await this.prismaService.$queryRaw<
@@ -311,15 +311,15 @@ export class ProductService {
       WHERE
       c.name LIKE ${category} 
       LIMIT ${limit}
-      OFFSET ${offset}`;
+      OFFSET ${offset}`
 
     const data = rawCategory.map((product) => {
-      return this.toProductResponse(product);
-    });
+      return this.toProductResponse(product)
+    })
 
     return {
       statusCode: 200,
-      message: "Success",
+      message: 'Success',
       data: data,
       paging: {
         currentPage: page,
@@ -327,30 +327,30 @@ export class ProductService {
         totalItem: totalCategory,
         totalPage: totalPages,
       },
-    };
+    }
   }
 
   async search(
     req: GetProductsRequest,
   ): Promise<WebResponse<ProductResponse[]>> {
-    this.logger.info(`PRODUCT_SERVICE:search ${req.search}`);
+    this.logger.info(`PRODUCT_SERVICE:search ${req.search}`)
 
-    if (!req.search || typeof req.search !== "string") {
-      throw new HttpException("Search term is required", 400);
+    if (!req.search || typeof req.search !== 'string') {
+      throw new HttpException('Search term is required', 400)
     }
 
-    const sanitized = req.search.replace("/%/g", "\\%").replace("/_/g", "\\_");
+    const sanitized = req.search.replace('/%/g', '\\%').replace('/_/g', '\\_')
 
-    const flex = sanitized.concat("%");
+    const flex = sanitized.concat('%')
 
-    const page = Math.max(1, Number(req.page) || 1);
-    const limit = Math.max(1, Number(req.limit) || 20);
+    const page = Math.max(1, Number(req.page) || 1)
+    const limit = Math.max(1, Number(req.limit) || 20)
 
     const totalNames = await this.prismaService.product.count({
       where: { name: { startsWith: flex } },
-    });
+    })
 
-    const totalPages = Math.ceil(totalNames / limit);
+    const totalPages = Math.ceil(totalNames / limit)
     // const offset = (page - 1) * limit;
 
     const dataProduct = await this.prismaService.$queryRaw<
@@ -359,19 +359,19 @@ export class ProductService {
       SELECT * FROM products as p 
       left join categories as c on c.id = p.category_id 
       left join brands as b on b.id = p.brand_id
-      WHERE p.name LIKE ${flex}`;
+      WHERE p.name LIKE ${flex}`
 
     if (!dataProduct) {
-      throw new HttpException("Product not found", 404);
+      throw new HttpException('Product not found', 404)
     }
 
     const data = dataProduct.map((product) => {
-      return this.toProductResponse(product);
-    });
+      return this.toProductResponse(product)
+    })
 
     return {
       statusCode: 200,
-      message: "Success",
+      message: 'Success',
       data: data,
       paging: {
         currentPage: page,
@@ -379,28 +379,27 @@ export class ProductService {
         totalItem: totalNames,
         totalPage: totalPages,
       },
-    };
+    }
   }
 
   async searchWithSlug(
     req: GetProductsRequest,
   ): Promise<WebResponse<ProductResponse[]>> {
-    const slug = `%${req.slug}%`;
+    const slug = `%${req.slug}%`
 
-    const page = Math.max(1, Number(req.page) || 1);
-    const limit = Math.max(1, Number(req.limit) || 20);
+    const page = Math.max(1, Number(req.page) || 1)
+    const limit = Math.max(1, Number(req.limit) || 20)
 
     const total = await this.prismaService.$queryRaw<TotalSlugQuery[]>`
       select count(*) as jumlah
       from products as p
       where
-          p.slug like ${slug}`;
+          p.slug like ${slug}`
 
-    const totalSlug = Number(total[0].jumlah);
-    console.log(totalSlug);
+    const totalSlug = Number(total[0].jumlah)
 
-    const totalPages = Math.ceil(totalSlug / limit);
-    const offset = (page - 1) * limit;
+    const totalPages = Math.ceil(totalSlug / limit)
+    const offset = (page - 1) * limit
 
     const dataProduct = await this.prismaService.$queryRaw<
       GetProductResponseSuccessQuery[]
@@ -432,15 +431,15 @@ export class ProductService {
         LEFT JOIN brands b ON b.id = p.brand_id
       WHERE p.slug LIKE ${slug}
       LIMIT ${limit}
-      OFFSET ${offset};`;
+      OFFSET ${offset};`
 
     const data = dataProduct.map((product) => {
-      return this.toProductResponse(product);
-    });
+      return this.toProductResponse(product)
+    })
 
     return {
       statusCode: 200,
-      message: "Success",
+      message: 'Success',
       data: data,
       paging: {
         currentPage: page,
@@ -448,7 +447,7 @@ export class ProductService {
         totalItem: totalSlug,
         totalPage: totalPages,
       },
-    };
+    }
   }
 
   async createBrand(brand: string): Promise<void> {
@@ -460,7 +459,7 @@ export class ProductService {
         isActive: true,
         websiteUrl: `www.${brand.toLowerCase()}.com`,
       },
-    });
+    })
   }
 
   private toProductResponse(product: GetProductResponseSuccessQuery) {
@@ -490,6 +489,6 @@ export class ProductService {
       isActive: product.isActive,
       metadata: product.metadata,
       createdAt: product.created_at,
-    };
+    }
   }
 }

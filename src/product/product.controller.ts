@@ -10,12 +10,12 @@ import {
   Post,
   Query,
   UseGuards,
-} from "@nestjs/common";
-import { Public } from "../common/decorator";
-import { Admin } from "../common/decorator/admin.decorator";
-import { JwtAuthGuard } from "../common/guards";
-import { AdminGuard } from "../common/guards/admin.guard";
-import { PublicGuard } from "../common/guards/public.guards";
+} from '@nestjs/common'
+import { Public } from '../common/decorator'
+import { Admin } from '../common/decorator/admin.decorator'
+import { JwtAuthGuard } from '../common/guards'
+import { AdminGuard } from '../common/guards/admin.guard'
+import { PublicGuard } from '../common/guards/public.guards'
 import {
   CreateProductRequest,
   CreateProductResponseSuccess,
@@ -25,11 +25,11 @@ import {
   SlugRequest,
   UpdateProductRequest,
   UpdateProductResponse,
-} from "../model/product.model";
-import { WebResponse } from "../model/web.mode";
-import { ProductService } from "./product.service";
+} from '../model/product.model'
+import { WebResponse } from '../model/web.model'
+import { ProductService } from './product.service'
 
-@Controller("/api/products")
+@Controller('/api/products')
 export class ProductController {
   constructor(private readonly productService: ProductService) {}
 
@@ -43,11 +43,11 @@ export class ProductController {
   async createProduct(
     @Body() req: CreateProductRequest,
   ): Promise<WebResponse<CreateProductResponseSuccess>> {
-    const result = await this.productService.createProduct(req);
+    const result = await this.productService.createProduct(req)
     return {
       data: result,
       statusCode: HttpStatus.CREATED,
-    };
+    }
   }
 
   @Admin()
@@ -56,12 +56,12 @@ export class ProductController {
   @UseGuards(AdminGuard)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get("all")
+  @Get('all')
   async getProductAll(
     @Query() req: GetProductsRequest,
   ): Promise<WebResponse<ProductResponse[]>> {
-    const result = await this.productService.getProductAll(req);
-    return result;
+    const result = await this.productService.getProductAll(req)
+    return result
   }
 
   @Admin()
@@ -74,8 +74,8 @@ export class ProductController {
   async getProductByCategory(
     @Query() req: GetProductsRequest,
   ): Promise<WebResponse<ProductResponse[]>> {
-    const result = await this.productService.getProductByCategory(req);
-    return result;
+    const result = await this.productService.getProductByCategory(req)
+    return result
   }
 
   @Admin()
@@ -84,22 +84,22 @@ export class ProductController {
   @UseGuards(PublicGuard)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get("/name")
+  @Get('/name')
   async searchProductName(
     @Query() req: GetProductsRequest,
   ): Promise<WebResponse<ProductResponse[]>> {
-    const result = await this.productService.search(req);
-    return result;
+    const result = await this.productService.search(req)
+    return result
   }
 
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get("/slug")
+  @Get('/slug')
   async searchWithSlug(
     @Query() req: GetProductsRequest,
   ): Promise<WebResponse<ProductResponse[]>> {
-    const result = await this.productService.searchWithSlug(req);
-    return result;
+    const result = await this.productService.searchWithSlug(req)
+    return result
   }
   //
   // @Admin()
@@ -134,15 +134,15 @@ export class ProductController {
   @UseGuards(AdminGuard)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Get("/:id")
+  @Get('/:id')
   async getProductById(
-    @Param("id") id: string,
+    @Param('id') id: string,
   ): Promise<WebResponse<ProductResponse>> {
-    const result = await this.productService.getProductById(id);
+    const result = await this.productService.getProductById(id)
     return {
       data: result,
       statusCode: HttpStatus.OK,
-    };
+    }
   }
 
   @Admin()
@@ -151,16 +151,16 @@ export class ProductController {
   @UseGuards(AdminGuard)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Patch("/:id")
+  @Patch('/:id')
   async updateProductById(
-    @Param("id") id: string,
+    @Param('id') id: string,
     @Body() req: UpdateProductRequest,
   ): Promise<WebResponse<UpdateProductResponse>> {
-    const result = await this.productService.updateProductById(id, req);
+    const result = await this.productService.updateProductById(id, req)
     return {
       data: result,
       statusCode: HttpStatus.OK,
-    };
+    }
   }
 
   @Admin()
@@ -169,15 +169,15 @@ export class ProductController {
   @UseGuards(AdminGuard)
   @UseGuards(JwtAuthGuard)
   @HttpCode(HttpStatus.OK)
-  @Delete("/:id")
+  @Delete('/:id')
   async deleteProductById(
-    @Param("id") id: string,
+    @Param('id') id: string,
   ): Promise<WebResponse<DeleteProductResponse>> {
-    const result = await this.productService.deleteProductById(id);
+    const result = await this.productService.deleteProductById(id)
     return {
       data: result,
-      message: "Product Deleted",
+      message: 'Product Deleted',
       statusCode: HttpStatus.OK,
-    };
+    }
   }
 }
